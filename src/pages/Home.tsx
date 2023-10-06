@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PartDescriptor from '../components/PartDescriptor';
-import { decrementPart, incrementPart, addNewPart } from '../actions/parts'; // Import the action for adding a new part
+import { decrementPart, incrementPart, addNewPart } from '../actions/parts';
 import { partsSelector } from '../selectors/local';
 
 import './Home.sass';
 
 const Home = () => {
   const [selectedPart, setSelectedPart] = useState<string>(null);
-  const [notes, setNotes] = useState<string>(''); // Add state for notes field
-  const [newPartName, setNewPartName] = useState<string>(''); // State for new part name
+  const [notes, setNotes] = useState<string>('');
+  const [newPartName, setNewPartName] = useState<string>('');
   const parts = useSelector(partsSelector);
   const dispatch = useDispatch();
 
@@ -18,13 +18,13 @@ const Home = () => {
   };
 
   useEffect(() => {
-    setNotes(''); // Reset notes field when a different part is selected
+    setNotes('');
   }, [selectedPart]);
 
   const handleNewPartSubmit = () => {
     if (newPartName.trim() !== '') {
-      dispatch(addNewPart(newPartName)); // Dispatch the action to add a new part
-      setNewPartName(''); // Reset the input field
+      dispatch(addNewPart(newPartName));
+      setNewPartName('');
     }
   };
 
@@ -33,18 +33,22 @@ const Home = () => {
       <h1>Parts Counter</h1>
       <hr />
       <ul className="partsList">
-        {parts.map(part => (
-          <li key={part.name} onClick={() => handlePartClick(part.name)}>
+        {parts.map((part) => (
+          <li
+            key={part.name}
+            onClick={() => handlePartClick(part.name)}
+            className={selectedPart === part.name ? 'selected' : ''}
+          >
             {part.name} {part.amount}
             <button
-              onClick={e => {
+              onClick={(e) => {
                 dispatch(incrementPart(part.name));
               }}
             >
               +
             </button>
             <button
-              onClick={e => {
+              onClick={(e) => {
                 dispatch(decrementPart(part.name));
               }}
             >
@@ -59,20 +63,19 @@ const Home = () => {
         <>
           <PartDescriptor
             name={selectedPart}
-            amount={parts.find(part => part.name === selectedPart).amount}
+            amount={parts.find((part) => part.name === selectedPart).amount}
             notes={notes}
-            setNotes={setNotes} // Pass setNotes function as prop
+            setNotes={setNotes}
           />
         </>
       )}
 
-      {/* Input field for new part */}
       <input
         type="text"
         placeholder="New Part Name"
         value={newPartName}
-        onChange={e => setNewPartName(e.target.value)}
-        onKeyPress={e => {
+        onChange={(e) => setNewPartName(e.target.value)}
+        onKeyPress={(e) => {
           if (e.key === 'Enter') {
             handleNewPartSubmit();
           }
