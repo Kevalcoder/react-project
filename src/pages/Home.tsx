@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { addNewPart, decrementPart, incrementPart } from '../actions/parts';
 import PartDescriptor from '../components/PartDescriptor';
-import { decrementPart, incrementPart, addNewPart } from '../actions/parts';
 import { partsSelector } from '../selectors/local';
 
 import './Home.sass';
@@ -14,23 +14,47 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const handlePartClick = (partName: string) => {
-    setSelectedPart(partName);
+    if (selectedPart !== partName) {
+      setSelectedPart(partName);
+      setNotes('');
+      setNewPartName('');
+    }
   };
 
-  useEffect(() => {
-    setNotes('');
-  }, [selectedPart]);
+  const handleIncrement = (partName: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (selectedPart === partName) {
+      dispatch(incrementPart(partName));
+    }
+  };
+
+  const handleDecrement = (partName: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (selectedPart === partName) {
+      dispatch(decrementPart(partName));
+    }
+  };
 
   const handleNewPartSubmit = () => {
     if (newPartName.trim() !== '') {
-      dispatch(addNewPart(newPartName));
-      setNewPartName('');
+      const existingPart = parts.find((part) => part.name === newPartName);
+      if (!existingPart) {
+        dispatch(addNewPart(newPartName));
+        setNewPartName('');
+      } else {
+        // Prompt the user that the part name already exists
+        window.alert('Part with the same name already exists!');
+      }
     }
   };
 
   return (
     <div>
       <h1>Parts Counter</h1>
+      <hr />
+      <h3>Add New Part</h3>
+      <input type="text" value={newPartName} onChange={(e) => setNewPartName(e.target.value)} />
+      <button onClick={handleNewPartSubmit}>Add Part</button>
       <hr />
       <ul className="partsList">
         {parts.map((part) => (
@@ -40,27 +64,17 @@ const Home = () => {
             className={selectedPart === part.name ? 'selected' : ''}
           >
             {part.name} {part.amount}
-            <button
-              onClick={(e) => {
-                dispatch(incrementPart(part.name));
-              }}
-            >
-              +
-            </button>
-            <button
-              onClick={(e) => {
-                dispatch(decrementPart(part.name));
-              }}
-            >
-              -
-            </button>
+            <div className="increment-decrement">
+              <button className={selectedPart === part.name ? 'selected' : ''} onClick={(e) => handleIncrement(part.name, e)}>+</button>
+              <button className={selectedPart === part.name ? 'selected' : ''} onClick={(e) => handleDecrement(part.name, e)}>-</button>
+            </div>
           </li>
         ))}
       </ul>
-      <hr />
-      <h2>Part Info</h2>
       {selectedPart && (
         <>
+          <hr />
+          <h2>Part Info</h2>
           <PartDescriptor
             name={selectedPart}
             amount={parts.find((part) => part.name === selectedPart).amount}
@@ -69,19 +83,6 @@ const Home = () => {
           />
         </>
       )}
-
-      <input
-        type="text"
-        placeholder="New Part Name"
-        value={newPartName}
-        onChange={(e) => setNewPartName(e.target.value)}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter') {
-            handleNewPartSubmit();
-          }
-        }}
-      />
-      <button onClick={handleNewPartSubmit}>Add New Part</button>
     </div>
   );
 };
